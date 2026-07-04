@@ -1,4 +1,4 @@
-import { createContext, useState } from "react";
+import { createContext, useState, useCallback } from "react";
 import { baseUrl } from "../baseUrl";
 import { useNavigate } from "react-router-dom";
 
@@ -12,34 +12,43 @@ export default function AppContextProvider({ children }) {
   const navigate = useNavigate();
 
   // Fetch Blog Data
-  const fetchBlogPosts = async (page = 1, tag = null, category) => {
+  const fetchBlogPosts = useCallback(async (page = 1, tag = null, category = null) => {
     setLoading(true);
+  
     let url = `${baseUrl}?page=${page}`;
+  
     if (tag) {
       url += `&tag=${tag}`;
     }
+  
     if (category) {
       url += `&category=${category}`;
     }
-
+  
+    console.log("Fetching URL:", url);
+  
     try {
       const res = await fetch(url);
+  
+      if (!res.ok) {
+        throw new Error(`HTTP Error: ${res.status}`);
+      }
+  
       const data = await res.json();
-      if (!data.posts || data.posts.length === 0)
-        throw new Error("Something Went Wrong");
-      console.log("Api Response", data);
+      console.log("API Response:", data);
+  
       setPage(data.page);
-      setPosts(data.posts);
+      setPosts(data.posts || []);
       setTotalPages(data.totalPages);
     } catch (error) {
-      console.log("Error in Fetching BlogPosts", error);
+      console.error("Error in Fetching BlogPosts:", error);
       setPage(1);
       setPosts([]);
       setTotalPages(null);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  };
-
+  }, []);
 
 
   // Handle When Next and Previous button are clicked
