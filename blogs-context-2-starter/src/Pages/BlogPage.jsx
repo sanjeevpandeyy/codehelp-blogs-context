@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 import Header from "../components/Header";
@@ -13,28 +13,31 @@ const BlogPage = () => {
   const { loading, setLoading } = useContext(AppContext);
   const newBaseUrl = "https://codehelp-apis.vercel.app/api/";
   const blogId = location.pathname.split("/").at(-1);
-
-  async function fetchRelatedBlogs() {
+  const fetchRelatedBlogs = useCallback(async () => {
     setLoading(true);
-    let url = `${newBaseUrl}get-blog?blogId=${blogId}`;
+  
+    const url = `${newBaseUrl}get-blog?blogId=${blogId}`;
+  
     try {
       const res = await fetch(url);
       const data = await res.json();
+  
       setBlog(data.blog);
       setRelatedblog(data.relatedBlogs);
     } catch (err) {
       console.log(err);
       setBlog(null);
       setRelatedblog([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  }
+  }, [blogId, setLoading]);
 
   useEffect(() => {
     if (blogId) {
       fetchRelatedBlogs();
     }
-  }, [location.pathname]);
+  }, [blogId, fetchRelatedBlogs]);
 
   return (
     <div className="min-h-screen bg-slate-100">

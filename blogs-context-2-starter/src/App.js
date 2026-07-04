@@ -11,28 +11,32 @@ import { Routes, Route, useSearchParams, useLocation } from "react-router-dom";
 
 export default function App() {
   const { fetchBlogPosts } = useContext(AppContext);
-  const [searchParams,setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const location = useLocation();
 
   useEffect(() => {
-    const page = searchParams.get('page') ?? 1;
-    if( location.pathname.includes("tags")) {
-      //tag wala page show krna hai
-      const tag=location.pathname.split("/").at(-1).replaceAll("-"," ");
-      console.log("tag ka path");
-      console.log(location.pathname);
-      fetchBlogPosts(Number(page),tag);
+    const page = Number(searchParams.get("page") ?? 1);
+  
+    if (location.pathname.includes("tags")) {
+      const tag = location.pathname
+        .split("/")
+        .at(-1)
+        .replaceAll("-", " ");
+  
+      fetchBlogPosts(page, tag);
+  
+    } else if (location.pathname.includes("categories")) {
+      const category = location.pathname
+        .split("/")
+        .at(-1)
+        .replaceAll("-", " ");
+  
+      fetchBlogPosts(page, null, category);
+  
+    } else {
+      fetchBlogPosts(page);
     }
-    else if( location.pathname.includes("categories")) {
-      //tag wala page show krna hai
-      const categories=location.pathname.split("/").at(-1).replaceAll("-"," ");
-      console.log("tag ka path");
-      console.log(location.pathname);
-      fetchBlogPosts(Number(page),null,categories);
-    }else{
-      fetchBlogPosts(Number(page));
-    }
-  }, [location.pathname,location.search,]);
+  }, [location.pathname, searchParams, fetchBlogPosts]);
 
   return (
     <Routes>
